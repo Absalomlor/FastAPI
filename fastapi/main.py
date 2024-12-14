@@ -108,9 +108,11 @@ async def get_questions():
         ]
     }
 
+allowed_origins = os.getenv("ALLOW_ORIGINS", "").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://ai-tutor-f0fcf.web.app/"],  # URL ของ Frontend
+    allow_origins=allowed_origins,  # URL ของ Frontend
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
