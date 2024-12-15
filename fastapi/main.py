@@ -61,8 +61,8 @@ def validate_with_openai(question: str, user_sql: str, model="gpt-4o-mini"):
     Question: {question}
     User SQL Script: {user_sql}
 
-    1. If the SQL script is correct, respond: "Correct: Your SQL script is valid.
-    2. If the SQL script is incorrect, explain why and provide hints to fix it (Hint in Thai Language).
+    1. If the SQL script is correct, respond: "Correct: Your SQL script is valid."
+    2. If the SQL script is incorrect, explain why and provide hints to fix it.
     3. Provide a score out of 1 based on the script's accuracy.
         If the SQL script has syntax errors, the score is 0.
         If the SQL script is syntactically correct but does not produce the correct result, the score is 0.5.
@@ -79,17 +79,24 @@ def validate_with_openai(question: str, user_sql: str, model="gpt-4o-mini"):
     Correct SQL Script: `SELECT SUM(balance) FROM banking.customer WHERE gender = 'Female';`  
     User SQL Script: `SELECT balance FROM banking.customer WHERE gender = 'Female';`
 
-    Respond in this JSON format:
+    Output:
     {
         "result": "Incorrect",
-        "score": "0.5",
-        "feedback": "สคริปต์ SQL มีความถูกต้องตามไวยากรณ์ แต่ดึงยอดคงเหลือแต่ละรายการแทนที่จะคำนวณผลรวม"
+        "feedback": "The SQL script is syntactically correct but retrieves individual balances instead of calculating the sum.",
+        "score": "0.5"
     }
+
+    Respond in this JSON format:
+    {{
+        "result": "Correct" or "Incorrect",
+        "feedback": "Detailed explanation or hints to fix errors. (Hint in Thai language)",
+        "score": "X"
+    }}
     """
     response = client.chat.completions.create(
         model=model,
         messages=[
-            {"role": "professor",
+            {"role": "system",
             "content": "You are academic professor assistant of university in Thailand who have responsibility to improve student learning experience."},
             {"role": "user", 
             "content": prompt},
