@@ -55,7 +55,7 @@ async def root():
 
 def validate_with_openai(question: str, user_sql: str, model="gpt-4o-mini"):
 
-    prompt = f"""
+    prompt = f'''
     You are an SQL script validator. Your job is to check if the SQL script provided by the user is correct based on the given question. 
 
     Question: {question}
@@ -75,11 +75,11 @@ def validate_with_openai(question: str, user_sql: str, model="gpt-4o-mini"):
 
     Respond in this JSON format:
     {
-        "result": "Correct" or "Incorrect",
+        "result": "Correct or Incorrect",
         "feedback": "Detailed explanation or hints to fix errors. (Hint in Thai language)",
         "score": "X"
     }
-    """
+    '''
     response = client.chat.completions.create(
         model=model,
         messages=[
