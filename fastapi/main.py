@@ -2,14 +2,15 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Dict
 from dotenv import load_dotenv
-from openai import OpenAI
+import openai
 import os
 from fastapi.middleware.cors import CORSMiddleware
 
 
 load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
 app = FastAPI()
-gpt_model = OpenAI()
 
 questions_db: Dict[int, Dict[str, str]] = {
     1: {
@@ -70,7 +71,7 @@ def validate_with_openai(question: str, user_sql: str, model="gpt-4o-mini"):
         "score": "X/10"
     }}
     """
-    response = gpt_model.chat.completions.create(
+    response = openai.ChatCompletion.create(
         model=model,
         messages=[
             {"role": "system",

@@ -1,13 +1,13 @@
 from dotenv import load_dotenv
 import os
-from openai import OpenAI
-
+import openai
 
 load_dotenv()
-gpt_model = OpenAI()
+openai.api_key = os.getenv("OPENAI_API_KEY")
+print(os.getenv("OPENAI_API_KEY"))
 
 def get_response(prompt, model="gpt-4o-mini"):
-    response = gpt_model.chat.completions.create(
+    response = openai.ChatCompletion.create(
                   model=model,
                   messages=[
                     {
