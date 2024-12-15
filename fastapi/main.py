@@ -73,19 +73,6 @@ def validate_with_openai(question: str, user_sql: str, model="gpt-4o-mini"):
     - Check for syntax errors in the user's SQL script.
     - If the syntax is correct, validate the logic and correctness of the script's output against the expected correct SQL script.
 
-    Example:
-    Input:
-    Question: "Find the total balance for female customers."  
-    Correct SQL Script: `SELECT SUM(balance) FROM banking.customer WHERE gender = 'Female';`  
-    User SQL Script: `SELECT balance FROM banking.customer WHERE gender = 'Female';`
-
-    Output:
-    {
-        "result": "Incorrect",
-        "feedback": "The SQL script is syntactically correct but retrieves individual balances instead of calculating the sum.",
-        "score": "0.5"
-    }
-
     Respond in this JSON format:
     {
         "result": "Correct" or "Incorrect",
