@@ -61,21 +61,35 @@ def validate_with_openai(question: str, user_sql: str, model="gpt-4o-mini"):
     Question: {question}
     User SQL Script: {user_sql}
 
-    1. If the SQL script is correct, respond: "Correct: Your SQL script is valid."
-    2. If the SQL script is incorrect, explain why and provide hints to fix it.
-    3. Provide a score out of 10 based on the script's accuracy.
+    1. If the SQL script is correct, respond: "Correct: Your SQL script is valid.
+    2. If the SQL script is incorrect, explain why and provide hints to fix it (Hint in Thai Language).
+    3. Provide a score out of 1 based on the script's accuracy.
+        If the SQL script has syntax errors, the score is 0.
+        If the SQL script is syntactically correct but does not produce the correct result, the score is 0.5.
+        If the SQL script is correct and produces the expected result, the score is 1.
+
+    Instructions:
+    - Carefully analyze the given question, the expected correct SQL script, and the user's SQL script.
+    - Check for syntax errors in the user's SQL script.
+    - If the syntax is correct, validate the logic and correctness of the script's output against the expected correct SQL script.
+
+    Example:
+    Input:
+    Question: "Find the total balance for female customers."  
+    Correct SQL Script: `SELECT SUM(balance) FROM banking.customer WHERE gender = 'Female';`  
+    User SQL Script: `SELECT balance FROM banking.customer WHERE gender = 'Female';`
 
     Respond in this JSON format:
-    {{
-        "result": "Correct" or "Incorrect",
-        "feedback": "Detailed explanation or hints to fix errors.",
-        "score": "X/10"
-    }}
+    {
+        "result": "Incorrect",
+        "score": "0.5",
+        "feedback": "สคริปต์ SQL มีความถูกต้องตามไวยากรณ์ แต่ดึงยอดคงเหลือแต่ละรายการแทนที่จะคำนวณผลรวม"
+    }
     """
     response = client.chat.completions.create(
         model=model,
         messages=[
-            {"role": "system",
+            {"role": "professor",
             "content": "You are academic professor assistant of university in Thailand who have responsibility to improve student learning experience."},
             {"role": "user", 
             "content": prompt},
