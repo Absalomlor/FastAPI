@@ -4,12 +4,11 @@ from typing import Dict
 from dotenv import load_dotenv
 import os
 from fastapi.middleware.cors import CORSMiddleware
-from openai import OpenAI
+import openai
 
 
 load_dotenv()
-openai_api_key = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=openai_api_key)
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = FastAPI()
 
@@ -72,7 +71,7 @@ def validate_with_openai(question: str, user_sql: str, model="gpt-4o-mini"):
         "score": "X/10"
     }}
     """
-    response = client.chat.completions.create(
+    response = openai.ChatCompletion.create(
         model=model,
         messages=[
             {"role": "system",
