@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 from fastapi.middleware.cors import CORSMiddleware
 from openai import OpenAI
+import json
 
 
 load_dotenv()
@@ -85,7 +86,8 @@ def validate_with_openai(question: str, user_sql: str, model="gpt-4o-mini"):
         frequency_penalty=0,
         presence_penalty=0,
     )
-    return response.choices[0].message.content
+    json_response = json.loads(response.choices[0].message.content)
+    return json_response
 
 # ตรวจคำตอบ
 @app.post("/api/validate_sql")
