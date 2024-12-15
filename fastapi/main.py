@@ -74,11 +74,11 @@ def validate_with_openai(question: str, user_sql: str, model="gpt-4o-mini"):
     - If the syntax is correct, validate the logic and correctness of the script's output against the expected correct SQL script.
 
     Respond in this JSON format:
-    {
+    {{
         "result": "Correct or Incorrect",
         "feedback": "Detailed explanation or hints to fix errors. (Hint in Thai language)",
         "score": "X"
-    }
+    }}
     '''
     response = client.chat.completions.create(
         model=model,
