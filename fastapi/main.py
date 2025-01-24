@@ -129,7 +129,8 @@ def validate_with_openai(question: str, user_sql: str, correct_sql: str, model="
             "handling_edge_cases": {{
                 "score": "0-1",
                 "details": "Evaluate whether the query properly handles NULL values, duplicates, and missing data."
-            }}
+            }},
+        "Final_Comments": "Summarize all Feedback to use to suggest where adjustments or corrections should be made."
         }}
     }}
 '''
