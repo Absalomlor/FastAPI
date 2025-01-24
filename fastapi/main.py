@@ -7,7 +7,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from openai import OpenAI
 import json
 
-
 load_dotenv()
 client = OpenAI()
 
@@ -53,33 +52,88 @@ class SQLRequest(BaseModel):
 async def root():
     return {"message": "Server is running!"}
 
-def validate_with_openai(question: str, user_sql: str, model="gpt-4o-mini"):
-
+def validate_with_openai(question: str, user_sql: str, correct_sql: str, model="gpt-4o-mini"):
     prompt = f'''
-    You are an SQL script validator. Your job is to check if the SQL script provided by the user is correct based on the given question. 
-
     Question: {question}
-    User SQL Script: {user_sql}
+    User SQL: {user_sql}
+    Example Correct SQL: {correct_sql}
 
-    1. If the SQL script is correct, respond: "Correct: Your SQL script is valid."
-    2. If the SQL script is incorrect, explain why and provide hints to fix it.
-    3. Provide a score out of 1 based on the script's accuracy.
-        If the SQL script has syntax errors, the score is 0.
-        If the SQL script is syntactically correct but does not produce the correct result, the score is 0.5.
-        If the SQL script is correct and produces the expected result, the score is 1.
+    Instruction:
+    You are a professor with years of experience reviewing SQL scripts. Your task is to provide detailed Feedback, Hints, and an accurate Score after evaluating the SQL script submitted by a student.
+    
+    Requirements:
+    - Evaluate the SQL script based on correctness of column selection, use of commands, and alignment with the problem requirements.
+    - Ensure the script is syntactically correct and logically complete.
+    - If the script contains **critical syntax errors that prevent execution, provide a score of 0 in relevant sections and include hints on how to fix them.
+    - Check the efficiency of the script, such as avoiding unnecessary operations or including optimizations.
+    - Differentiate between minor mistakes and major errors:
+    - Minor mistakes (e.g., missing alias) should lead to partial score deductions.
+    - Major errors (e.g., using the wrong table or incorrect JOIN type) should significantly lower the score.
+    - Assign a score from 0 to 1 based on the following detailed scoring criteria.
+    - Provide detailed feedback explaining the reasoning behind the score and hints for improvement.
 
-    Instructions:
-    - Carefully analyze the given question, the expected correct SQL script, and the user's SQL script.
-    - Check for syntax errors in the user's SQL script.
-    - If the syntax is correct, validate the logic and correctness of the script's output against the expected correct SQL script.
+    Scoring Criteria: 
+    1. Column Selection & Query Structure (15%)
+    - (3%) Column Selection: Are the selected columns correct?  
+    - (6%) JOIN & ON Conditions: Are the joins correctly structured?  
+    - (6%) Subquery & CTE Usage: Are subqueries/CTEs appropriately used?  
 
-    Respond in this JSON format:
+    2. Command Usage & Logic (35%)  
+    - (10%) SQL Commands (WHERE, GROUP BY, HAVING, ORDER BY, etc.): Are the commands used correctly?  
+    - (15%) Logical Flow: Does the logic of the query match the problem's intent?  
+    - (10%) SQL Functions (CASE, COUNT, SUM, AVG, etc.): Are functions used appropriately?  
+
+    3. Correctness (30%)  
+    - (15%) Query Output: Does the query return the correct output?  
+    - (15%) Data Coverage: Does the query handle all required data conditions?  
+
+    4. Optimization & Best Practices (10%)  
+    - (5%) Query Performance: Is the query optimized?  
+    - (5%) Code Readability: Is the query formatted clearly and logically?  
+
+    5. Handling Edge Cases (10%)
+    - (5%) NULL & Missing Data Handling: Are missing values managed correctly?  
+    - (5%) Duplicate & Data Integrity Checks: Are duplicates and inconsistencies handled?  
+
+    Thinking Step-by-Step
+    1. Analyze the problem statement and identify the expected output.  
+    2. Check the column selection and overall structure of the query.  
+    3. Verify SQL commands and logical flow within the script.  
+    4. Check for syntax errors and execution feasibility. If the query cannot execute due to syntax issues, provide a score of 0 in relevant sections.  
+    5. Ensure correctness by comparing the result with the expected output. If necessary, simulate sample data to validate the query logic.  
+    6. Evaluate optimization and best practices to check for efficiency.  
+    7. Assess handling of edge cases, including NULL values and duplicates.  
+    8. Automatically calculate a weighted score based on the criteria above. If a category receives 0, adjust other scores accordingly.  
+    9. Provide constructive feedback with step-by-step hints for improvement.   
+
+    Response Format:  
     {{
-        "result": "Correct or Incorrect",
-        "feedback": "Detailed explanation or hints to fix errors. (Hint in Thai language)",
-        "score": "X"
+        "score": "0-1",
+        "feedback": {{
+            "column_selection": {{
+                "score": "0-1",
+                "details": "Explain issues with column selection, JOINs, or subqueries."
+            }},
+            "command_logic": {{
+                "score": "0-1",
+                "details": "Describe issues with SQL commands or logical errors."
+            }},
+            "correctness": {{
+                "score": "0-1",
+                "details": "Explain whether the query produces the correct results."
+            }},
+            "optimization": {{
+                "score": "0-1",
+                "details": "Provide feedback on performance and best practices."
+            }},
+            "handling_edge_cases": {{
+                "score": "0-1",
+                "details": "Evaluate whether the query properly handles NULL values, duplicates, and missing data."
+            }}
+        }}
     }}
-    '''
+'''
+
     response = client.chat.completions.create(
         model=model,
         messages=[
@@ -105,7 +159,8 @@ async def validate_sql(data: SQLRequest):
     if not question:
         raise HTTPException(status_code=404, detail="Question not found.")
 
-    openai_result = validate_with_openai(question["question"], data.user_sql)
+    correct_sql = question["correct_sql"]
+    openai_result = validate_with_openai(question["question"], data.user_sql, correct_sql)
 
     return {"response": openai_result}
 
